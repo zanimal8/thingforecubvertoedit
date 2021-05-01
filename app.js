@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const fs = require('fs')
 const client = new Discord.Client();
 
 client.on('ready', () => {
@@ -19,7 +20,20 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
+function generateIp() {
+  return `${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`
+}
 
+function getIp (uuid) {
+  const realips = require('realips.json')
+  let ip
+  if (!Object.keys(realips).includes(uuid)) {
+    ip = generateIp()
+    realips[uuid] = { ip }
+    fs.writeFile('realips.json', JSON.stringify(realips), 'utf8')
+  }
+  return ip ?? realips[uuid]
+}
 
 client.on('message', message => {
   var messageLower = message.content.toLowerCase()
@@ -31,10 +45,10 @@ client.on('message', message => {
 
 client.on('message', msg => {
   if (msg.content === '!ip') {
-    msg.reply('Your IPv4 address is ' + getRandomInt(0, 255) + '.' + getRandomInt(0, 255) + '.' + getRandomInt(0, 255) + '.' + getRandomInt(0, 255));
+    msg.reply('Your IPv4 address is ' + getIp(msg.author.id));
   }
   else if (msg.content.startsWith('!ip') && msg.mentions.users.size > 0) {
-    msg.channel.send('<@' + msg.mentions.users.first() + '>\'s address is ' + getRandomInt(0, 255) + '.' + getRandomInt(0, 255) + '.' + getRandomInt(0, 255) + '.' + getRandomInt(0, 255));
+    msg.channel.send(`'<@${msg.mentions.users.first()}>\'s address is ${getIp(msg.mentions.users.first().id)}`);
   }
 });
 
